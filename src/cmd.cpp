@@ -2,11 +2,11 @@
 
 #include "cmd/data.hpp"
 #include "string.hpp"
+#include "tsqueue.hpp"
 
-#include <fmt/printf.h>
+#include <fmt/core.h>
 
 #include <functional>
-#include <iostream>
 #include <unordered_map>
 
 namespace cmd
@@ -20,7 +20,8 @@ namespace cmd
         if (data != std::nullopt)
         {
             auto result = exec(registry, data.value());
-            fmt::print("[cmd:{}] {}\n", argv[0], result.msg);
+            auto& result_queue = registry.ctx().at<TsQueue<CommandResult>>();
+            result_queue.push(result);
         }
     }
 
@@ -30,6 +31,9 @@ namespace cmd
         commands.emplace("plant", &handler_func<CmdPlantData>);
         commands.emplace("harvest", &handler_func<CmdHarvestData>);
         registry.ctx().emplace<CommandMap>(std::move(commands));
+
+        registry.ctx().emplace<TsQueue<std::string>>();     // command queue
+        registry.ctx().emplace<TsQueue<CommandResult>>();   // result queue
     }
 
     void parse_exec(entt::registry& registry, const std::string& cmd)
@@ -42,7 +46,8 @@ namespace cmd
         }
         else
         {
-            fmt::print("[cmd] unknown command '{}'\n", argv[0]);
+            auto& result_queue = registry.ctx().at<TsQueue<CommandResult>>();
+            result_queue.push({ .msg = fmt::format("unknown command '{}'", argv[0]) });
         }
     }
 

@@ -37,26 +37,12 @@ int main()
     cmd::init_handlers(registry);
     registry.ctx().emplace<TileMap>(10, 10);
     init_registries(registry, init());
-    auto& cmd_queue = registry.ctx().emplace<TsQueue<std::string>>();
+    auto& cmd_queue = registry.ctx().at<TsQueue<std::string>>();
     auto& running = registry.ctx().emplace<std::atomic_bool>(true);
 
     std::thread simulation_thread(simulation_main, &registry);
     std::thread graphics_thread(graphics_main, &registry);
 
-    while (running)
-    {
-        std::string command;
-        std::getline(std::cin, command);
-        if (command == "exit")
-        {
-            running = false;
-        }
-        else
-        {
-            cmd_queue.push(command);
-        }
-    }
-
-    simulation_thread.join();
     graphics_thread.join();
+    simulation_thread.join();
 }
