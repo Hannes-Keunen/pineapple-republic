@@ -21,3 +21,5 @@ struct CmdHarvestData
     int x;
     int y;
 };
+
+struct CmdExitData {};

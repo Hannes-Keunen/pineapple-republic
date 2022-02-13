@@ -30,6 +30,7 @@ namespace cmd
         CommandMap commands;
         commands.emplace("plant", &handler_func<CmdPlantData>);
         commands.emplace("harvest", &handler_func<CmdHarvestData>);
+        commands.emplace("exit", &handler_func<CmdExitData>);
         registry.ctx().emplace<CommandMap>(std::move(commands));
 
         registry.ctx().emplace<TsQueue<std::string>>();     // command queue

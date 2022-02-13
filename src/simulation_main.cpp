@@ -1,4 +1,5 @@
 #include "cmd.hpp"
+#include "game_state.hpp"
 #include "systems/systems.hpp"
 #include "tsqueue.hpp"
 
@@ -21,18 +22,18 @@ void update(entt::registry& registry, uint32_t delta)
     sys::growth_tick(registry, delta);
 }
 
-void simulation_main(entt::registry* registry)
+void simulation_main(entt::registry& registry)
 {
-    auto& running = registry->ctx().at<std::atomic_bool>();
+    auto& state = registry.ctx().at<GameState>();
 
     auto prev = std::chrono::system_clock::now();
-    while(running)
+    while(state.this_thread().running)
     {
-        process_commands(*registry);
+        process_commands(registry);
 
         auto now = std::chrono::system_clock::now();
         auto delta = std::chrono::duration_cast<std::chrono::microseconds>(now - prev).count();
         prev = now;
-        update(*registry, delta);
+        update(registry, delta);
     }
 }

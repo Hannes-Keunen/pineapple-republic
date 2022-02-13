@@ -1,4 +1,5 @@
 #include "cmd.hpp"
+#include "game_state.hpp"
 #include "imgui/console.hpp"
 #include "imgui/imgui.hpp"
 #include "tsqueue.hpp"
@@ -26,7 +27,7 @@ void gl_debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, G
     }
 }
 
-static bool show_console;
+static bool show_console = true;
 
 void glfw_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -36,8 +37,10 @@ void glfw_key_callback(GLFWwindow* window, int key, int scancode, int action, in
     }
 }
 
-void graphics_main(entt::registry* registry)
+void graphics_main(entt::registry& registry)
 {
+    auto& state = registry.ctx().at<GameState>();
+
     if (!glfwInit())
     {
         fmt::print("glfwInit failed\n");
@@ -47,7 +50,9 @@ void graphics_main(entt::registry* registry)
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-    auto window = glfwCreateWindow(1920, 1080, "Pineapple Republic", nullptr, nullptr);
+    auto monitor = glfwGetPrimaryMonitor();
+    auto mode = glfwGetVideoMode(monitor);
+    auto window = glfwCreateWindow(mode->width, mode->height, "Pineapple Republic", monitor, nullptr);
     if (window == nullptr)
     {
         fmt::print("failed to create a window\n");
@@ -75,16 +80,19 @@ void graphics_main(entt::registry* registry)
     imgui::Console console;
     console.set_cmd_callback([&](const std::string& cmd)
     {
-        auto& cmd_queue = registry->ctx().at<TsQueue<std::string>>();
+        auto& cmd_queue = registry.ctx().at<TsQueue<std::string>>();
         cmd_queue.push(cmd);
     });
 
-    while (!glfwWindowShouldClose(window))
+    while (state.this_thread().running && !glfwWindowShouldClose(window))
     {
+        int w, h;
+        glfwGetFramebufferSize(window, &w, &h);
+        glViewport(0, 0, w, h);
         glClear(GL_COLOR_BUFFER_BIT);
         // TODO: rendering
 
-        auto& log_queue = registry->ctx().at<TsQueue<cmd::CommandResult>>();
+        auto& log_queue = registry.ctx().at<TsQueue<cmd::CommandResult>>();
         while (!log_queue.is_empty())
         {
             console.push_log_entry(log_queue.pop().msg);
@@ -92,7 +100,6 @@ void graphics_main(entt::registry* registry)
 
         imgui::begin();
         if (show_console) { console.draw(&show_console); }
-        ImGui::ShowDemoWindow();
         imgui::draw();
 
         glfwSwapBuffers(window);

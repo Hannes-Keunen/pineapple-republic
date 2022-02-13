@@ -61,6 +61,11 @@
         "iomanip": "cpp",
         "cinttypes": "cpp",
         "typeindex": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "condition_variable": "cpp",
+        "mutex": "cpp",
+        "stop_token": "cpp",
+        "thread": "cpp",
+        "semaphore": "cpp"
     }
 }

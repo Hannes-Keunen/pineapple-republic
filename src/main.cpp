@@ -1,4 +1,5 @@
 #include "cmd.hpp"
+#include "game_state.hpp"
 #include "model/crop.hpp"
 #include "model/item.hpp"
 #include "registry.hpp"
@@ -28,8 +29,8 @@ auto init() -> InitData
     };
 }
 
-void simulation_main(entt::registry* registry);
-void graphics_main(entt::registry* registry);
+void simulation_main(entt::registry& registry);
+void graphics_main(entt::registry& registry);
 
 int main()
 {
@@ -37,12 +38,24 @@ int main()
     cmd::init_handlers(registry);
     registry.ctx().emplace<TileMap>(10, 10);
     init_registries(registry, init());
-    auto& cmd_queue = registry.ctx().at<TsQueue<std::string>>();
-    auto& running = registry.ctx().emplace<std::atomic_bool>(true);
 
-    std::thread simulation_thread(simulation_main, &registry);
-    std::thread graphics_thread(graphics_main, &registry);
+    auto& state = registry.ctx().emplace<GameState>();
+    state.create_thread("simulation", simulation_main, registry);
+    state.create_thread("graphics", graphics_main, registry);
 
-    graphics_thread.join();
-    simulation_thread.join();
+    bool running = true;
+    while (running)
+    {
+        for (const auto& [_, thread] : state.get_threads())
+        {
+            if (!thread.running)
+            {
+                fmt::print("[main] thread {} has stopped, exiting...\n", thread.get_label());
+                running = false;
+            }
+        }
+    }
+
+    for (auto& [_, thread] : state.get_threads()) { thread.running = false; }
+    for (auto& [_, thread] : state.get_threads()) { thread.thread.join(); }
 }
