@@ -1,6 +1,9 @@
 #include "cmd.hpp"
 
 #include "cmd/data.hpp"
+#include "event.hpp"
+#include "game_state.hpp"
+#include "log.hpp"
 #include "string.hpp"
 #include "tsqueue.hpp"
 
@@ -22,6 +25,9 @@ namespace cmd
             auto result = exec(registry, data.value());
             auto& result_queue = registry.ctx().at<TsQueue<CommandResult>>();
             result_queue.push(result);
+
+            auto& state = registry.ctx().at<GameState>();
+            state.log_i("{}", result.msg);
         }
     }
 
@@ -49,6 +55,8 @@ namespace cmd
         {
             auto& result_queue = registry.ctx().at<TsQueue<CommandResult>>();
             result_queue.push({ .msg = fmt::format("unknown command '{}'", argv[0]) });
+            auto& state = registry.ctx().at<GameState>();
+            state.log_e("unknown command '{}'", argv[0]);
         }
     }
 

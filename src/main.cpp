@@ -1,5 +1,7 @@
 #include "cmd.hpp"
+#include "event.hpp"
 #include "game_state.hpp"
+#include "log.hpp"
 #include "model/crop.hpp"
 #include "model/item.hpp"
 #include "registry.hpp"
@@ -8,7 +10,7 @@
 #include "tsqueue.hpp"
 
 #include <entt/entt.hpp>
-#include <fmt/printf.h>
+#include <fmt/chrono.h>
 
 #include <atomic>
 #include <chrono>
@@ -42,15 +44,21 @@ int main()
     auto& state = registry.ctx().emplace<GameState>();
     state.create_thread("simulation", simulation_main, registry);
     state.create_thread("graphics", graphics_main, registry);
+    state.on_event<logging::Entry>([](const logging::Entry& e)
+    {
+        fmt::print("[{}][{}] {}\n", e.timestamp, e.thread_id, e.msg);
+    });
 
     bool running = true;
     while (running)
     {
+        state.get<EventBus<logging::Entry>>().drain();
+
         for (const auto& [_, thread] : state.get_threads())
         {
             if (!thread.running)
             {
-                fmt::print("[main] thread {} has stopped, exiting...\n", thread.get_label());
+                state.log_i("[main] thread {} has stopped, exiting...\n", thread.get_label());
                 running = false;
             }
         }

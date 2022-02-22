@@ -1,7 +1,10 @@
 #include "cmd.hpp"
+#include "event.hpp"
 #include "game_state.hpp"
+#include "log.hpp"
 #include "imgui/console.hpp"
 #include "imgui/imgui.hpp"
+#include "imgui/log_window.hpp"
 #include "tsqueue.hpp"
 
 #include <entt/entt.hpp>
@@ -83,6 +86,7 @@ void graphics_main(entt::registry& registry)
         auto& cmd_queue = registry.ctx().at<TsQueue<std::string>>();
         cmd_queue.push(cmd);
     });
+    imgui::LogWindow log_window(state);
 
     while (state.this_thread().running && !glfwWindowShouldClose(window))
     {
@@ -92,6 +96,9 @@ void graphics_main(entt::registry& registry)
         glClear(GL_COLOR_BUFFER_BIT);
         // TODO: rendering
 
+        auto& logger = state.get<EventBus<logging::Entry>>();
+        logger.drain();
+
         auto& log_queue = registry.ctx().at<TsQueue<cmd::CommandResult>>();
         while (!log_queue.is_empty())
         {
@@ -100,6 +107,7 @@ void graphics_main(entt::registry& registry)
 
         imgui::begin();
         if (show_console) { console.draw(&show_console); }
+        log_window.draw();
         imgui::draw();
 
         glfwSwapBuffers(window);

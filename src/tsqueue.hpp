@@ -9,6 +9,12 @@ template <typename T>
 class TsQueue
 {
 public:
+    TsQueue() = default;
+    TsQueue(const TsQueue&) = delete;
+    TsQueue(TsQueue&&) = default;
+    TsQueue& operator=(const TsQueue&) = delete;
+    TsQueue& operator=(TsQueue&&) = default;
+
     void push(const T& t)
     {
         std::lock_guard<std::mutex> lock(mutex);
