@@ -46,7 +46,7 @@ int main()
     state.create_thread("graphics", graphics_main, registry);
     state.on_event<logging::Entry>([](const logging::Entry& e)
     {
-        fmt::print("[{}][{}] {}\n", e.timestamp, e.thread_id, e.msg);
+        fmt::print("[{}][{}|{}] {}\n", e.timestamp, e.thread_id, e.level, e.msg);
     });
 
     bool running = true;

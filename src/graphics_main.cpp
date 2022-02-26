@@ -46,7 +46,7 @@ void graphics_main(entt::registry& registry)
 
     if (!glfwInit())
     {
-        fmt::print("glfwInit failed\n");
+        state.log_e("glfwInit failed");
         return;
     }
 
@@ -58,7 +58,7 @@ void graphics_main(entt::registry& registry)
     auto window = glfwCreateWindow(mode->width, mode->height, "Pineapple Republic", monitor, nullptr);
     if (window == nullptr)
     {
-        fmt::print("failed to create a window\n");
+        state.log_e("failed to create a window");
         glfwTerminate();
         return;
     }
@@ -66,7 +66,7 @@ void graphics_main(entt::registry& registry)
     glfwMakeContextCurrent(window);
     if (gladLoadGLLoader((GLADloadproc) glfwGetProcAddress) == 0)
     {
-        fmt::print("gladLoadGLLoader failed\n");
+        state.log_e("gladLoadGLLoader failed");
         glfwDestroyWindow(window);
         glfwTerminate();
         return;
@@ -76,8 +76,8 @@ void graphics_main(entt::registry& registry)
 
     glfwSetKeyCallback(window, glfw_key_callback);
 
-    fmt::print("[graphics] OpenGL version: {}\n", glGetString(GL_VERSION));
-    fmt::print("[graphics] OpenGL renderer: {}\n", glGetString(GL_RENDERER));
+    state.log_i("OpenGL version: {}", glGetString(GL_VERSION));
+    state.log_i("OpenGL renderer: {}", glGetString(GL_RENDERER));
 
     imgui::init(window);
     imgui::Console console;
