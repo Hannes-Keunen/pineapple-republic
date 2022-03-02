@@ -1,6 +1,7 @@
 #include "cmd.hpp"
 #include "event.hpp"
 #include "game_state.hpp"
+#include "gfx/batch.hpp"
 #include "log.hpp"
 #include "imgui/console.hpp"
 #include "imgui/imgui.hpp"
@@ -40,6 +41,8 @@ void glfw_key_callback(GLFWwindow* window, int key, int scancode, int action, in
     }
 }
 
+void draw_frame(entt::registry& registry, gfx::Batch& batch);
+
 void graphics_main(entt::registry& registry)
 {
     auto& state = registry.ctx().at<GameState>();
@@ -53,9 +56,10 @@ void graphics_main(entt::registry& registry)
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-    auto monitor = glfwGetPrimaryMonitor();
-    auto mode = glfwGetVideoMode(monitor);
-    auto window = glfwCreateWindow(mode->width, mode->height, "Pineapple Republic", monitor, nullptr);
+    // auto monitor = glfwGetPrimaryMonitor();
+    // auto mode = glfwGetVideoMode(monitor);
+    // auto window = glfwCreateWindow(mode->width, mode->height, "Pineapple Republic", monitor, nullptr);
+    auto window = glfwCreateWindow(1920, 1080, "Pineapple Republic", nullptr, nullptr);
     if (window == nullptr)
     {
         state.log_e("failed to create a window");
@@ -79,6 +83,8 @@ void graphics_main(entt::registry& registry)
     state.log_i("OpenGL version: {}", glGetString(GL_VERSION));
     state.log_i("OpenGL renderer: {}", glGetString(GL_RENDERER));
 
+    auto batch = gfx::Batch::create(8).value();
+
     imgui::init(window);
     imgui::Console console;
     console.set_cmd_callback([&](const std::string& cmd)
@@ -90,12 +96,7 @@ void graphics_main(entt::registry& registry)
 
     while (state.this_thread().running && !glfwWindowShouldClose(window))
     {
-        int w, h;
-        glfwGetFramebufferSize(window, &w, &h);
-        glViewport(0, 0, w, h);
-        glClear(GL_COLOR_BUFFER_BIT);
-        // TODO: rendering
-
+        // Events
         auto& logger = state.get<EventBus<logging::Entry>>();
         logger.drain();
 
@@ -104,6 +105,13 @@ void graphics_main(entt::registry& registry)
         {
             console.push_log_entry(log_queue.pop().msg);
         }
+
+        int w, h;
+        glfwGetFramebufferSize(window, &w, &h);
+        glViewport(0, 0, w, h);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        draw_frame(registry, batch);
 
         imgui::begin();
         if (show_console) { console.draw(&show_console); }
@@ -118,4 +126,18 @@ void graphics_main(entt::registry& registry)
 
     glfwDestroyWindow(window);
     glfwTerminate();
+}
+
+void draw_frame(entt::registry& registry, gfx::Batch& batch)
+{
+    auto& state = registry.ctx().at<GameState>();
+    auto frame = state.begin_frame();
+
+    batch.begin();
+    for (float x = -1.0; x < 1.0; x +=  0.1) {
+        for (float y = -1.0; y < 1.0; y +=  0.1) {
+            batch.submit(x, y, 0.09, 0.09);
+        }
+    }
+    batch.flush();
 }

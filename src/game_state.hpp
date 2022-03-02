@@ -8,6 +8,7 @@
 
 #include <any>
 #include <atomic>
+#include <mutex>
 #include <string>
 #include <thread>
 #include <typeindex>
@@ -31,6 +32,8 @@ private:
 
 class GameState
 {
+public:
+    GameState();
 public:
     template <typename T>
     T& get()
@@ -110,8 +113,12 @@ public:
     auto& get_threads() { return threads; }
     auto& this_thread() const { return threads.at(std::this_thread::get_id()); }
     auto& this_thread() { return threads.at(std::this_thread::get_id()); }
+
+    // TODO: double-buffer the registry instead of exclusive lock
+    [[nodiscard]] auto begin_frame() { return std::lock_guard<std::mutex>(frame_mutex); }
 private:
     std::atomic_bool dummy;
     std::unordered_map<std::thread::id, ThreadData> threads;
     std::unordered_map<std::type_index, AnyPtr> ctx;
+    std::mutex frame_mutex;
 };

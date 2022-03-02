@@ -52,18 +52,18 @@ int main()
     bool running = true;
     while (running)
     {
-        state.get<EventBus<logging::Entry>>().drain();
-
         for (const auto& [_, thread] : state.get_threads())
         {
             if (!thread.running)
             {
-                state.log_i("[main] thread {} has stopped, exiting...\n", thread.get_label());
+                state.log_i("thread {} has stopped, exiting...", thread.get_label());
                 running = false;
             }
         }
+
+        state.get<EventBus<logging::Entry>>().drain();
     }
 
-    for (auto& [_, thread] : state.get_threads()) { thread.running = false; }
-    for (auto& [_, thread] : state.get_threads()) { thread.thread.join(); }
+    for (auto& [_, data] : state.get_threads()) { data.running = false; }
+    for (auto& [_, data] : state.get_threads()) { if (data.thread.joinable()) { data.thread.join(); } }
 }
