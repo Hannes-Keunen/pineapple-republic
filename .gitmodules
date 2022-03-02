@@ -10,3 +10,6 @@
 [submodule "lib/imgui"]
 	path = lib/imgui
 	url = git@github.com:ocornut/imgui.git
+[submodule "lib/SPIRV-Cross"]
+	path = lib/SPIRV-Cross
+	url = https://github.com/KhronosGroup/SPIRV-Cross.git
