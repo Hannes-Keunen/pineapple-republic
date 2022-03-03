@@ -6,8 +6,8 @@ namespace gfx
 {
     void Batch::begin()
     {
-        mapped_buffer = vbo.map_as<Vertex>();
-        size = 0;
+        draw_calls = 0;
+        reset();
     }
 
     void Batch::submit(float x, float y, float w, float h)
@@ -15,7 +15,7 @@ namespace gfx
         if (size == capacity)
         {
             flush();
-            begin();
+            reset();
         }
 
         mapped_buffer[4 * size + 0] = {{x    , y + h}, {0.0f, 1.0f}}; // top left
@@ -23,6 +23,17 @@ namespace gfx
         mapped_buffer[4 * size + 2] = {{x    , y    }, {0.0f, 0.0f}}; // bottom left
         mapped_buffer[4 * size + 3] = {{x + w, y    }, {1.0f, 0.0f}}; // bottom right
         size += 1;
+    }
+    
+    void Batch::end()
+    {
+        flush();
+    }
+
+    void Batch::reset()
+    {
+        mapped_buffer = vbo.map_as<Vertex>();
+        size = 0;
     }
 
     void Batch::flush()
@@ -33,6 +44,8 @@ namespace gfx
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo.gl_id());
         glBindVertexArray(vao.gl_id());
         glDrawElements(GL_TRIANGLES, 6 * size, GL_UNSIGNED_SHORT, 0);
+
+        draw_calls += 1;
     }
 
     static auto create_indices(int count) -> std::vector<uint16_t>
@@ -41,12 +54,12 @@ namespace gfx
         indices.reserve(6 * count);
         for (int i = 0; i < count; i++)
         {
-            indices.push_back(i * count + 0);
-            indices.push_back(i * count + 1);
-            indices.push_back(i * count + 2);
-            indices.push_back(i * count + 2);
-            indices.push_back(i * count + 1);
-            indices.push_back(i * count + 3);
+            indices.push_back(4 * i + 0);
+            indices.push_back(4 * i + 1);
+            indices.push_back(4 * i + 2);
+            indices.push_back(4 * i + 2);
+            indices.push_back(4 * i + 1);
+            indices.push_back(4 * i + 3);
         }
         return indices;
     }
@@ -78,7 +91,7 @@ namespace gfx
             return std::nullopt;
         }
 
-        return Batch(1, shader.unwrap(), std::move(vao.value()), std::move(vbo.value()), std::move(ibo.value()));
+        return Batch(capacity, shader.unwrap(), std::move(vao.value()), std::move(vbo.value()), std::move(ibo.value()));
     }
 
 } // namespace gfx

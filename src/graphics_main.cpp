@@ -6,6 +6,7 @@
 #include "imgui/console.hpp"
 #include "imgui/imgui.hpp"
 #include "imgui/log_window.hpp"
+#include "imgui/renderer_stats.hpp"
 #include "tsqueue.hpp"
 
 #include <entt/entt.hpp>
@@ -83,7 +84,7 @@ void graphics_main(entt::registry& registry)
     state.log_i("OpenGL version: {}", glGetString(GL_VERSION));
     state.log_i("OpenGL renderer: {}", glGetString(GL_RENDERER));
 
-    auto batch = gfx::Batch::create(8).value();
+    auto batch = gfx::Batch::create(1024).value();
 
     imgui::init(window);
     imgui::Console console;
@@ -93,6 +94,7 @@ void graphics_main(entt::registry& registry)
         cmd_queue.push(cmd);
     });
     imgui::LogWindow log_window(state);
+    imgui::RendererStatsWindow stats_window;
 
     while (state.this_thread().running && !glfwWindowShouldClose(window))
     {
@@ -116,6 +118,7 @@ void graphics_main(entt::registry& registry)
         imgui::begin();
         if (show_console) { console.draw(&show_console); }
         log_window.draw();
+        stats_window.draw(batch);
         imgui::draw();
 
         glfwSwapBuffers(window);
@@ -134,10 +137,10 @@ void draw_frame(entt::registry& registry, gfx::Batch& batch)
     auto frame = state.begin_frame();
 
     batch.begin();
-    for (float x = -1.0; x < 1.0; x +=  0.1) {
-        for (float y = -1.0; y < 1.0; y +=  0.1) {
-            batch.submit(x, y, 0.09, 0.09);
+    for (float x = -1.0; x < 1.0; x +=  0.02) {
+        for (float y = -1.0; y < 1.0; y +=  0.02) {
+            batch.submit(x, y, 0.015, 0.015);
         }
     }
-    batch.flush();
+    batch.end();
 }

@@ -39,12 +39,18 @@ namespace gfx
 
         void begin();
         void submit(float x, float y, float w, float h);
-        void flush();
+        void end();
+
+        auto get_draw_calls() const { return draw_calls; }
     public:
         static auto create(int capacity) -> std::optional<Batch>;
     private:
+        void reset();
+        void flush();
+    private:
         int size;
         int capacity;
+        int draw_calls;
         Vertex* mapped_buffer;
 
         gl::Shader shader;
