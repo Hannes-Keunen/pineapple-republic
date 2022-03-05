@@ -1,12 +1,16 @@
 #include "batch.hpp"
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include <vector>
 
 namespace gfx
 {
-    void Batch::begin()
+    void Batch::begin(const glm::mat4& vp_matrix)
     {
-        draw_calls = 0;
+        stats.sprites = 0;
+        stats.draws = 0;
+        this->vp_matrix = vp_matrix;
         reset();
     }
 
@@ -41,11 +45,13 @@ namespace gfx
         vbo.unmap();
 
         glUseProgram(shader.gl_id());
+        glUniformMatrix4fv(0, 1, false, glm::value_ptr(vp_matrix));
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo.gl_id());
         glBindVertexArray(vao.gl_id());
         glDrawElements(GL_TRIANGLES, 6 * size, GL_UNSIGNED_SHORT, 0);
 
-        draw_calls += 1;
+        stats.draws += 1;
+        stats.sprites += size;
     }
 
     static auto create_indices(int count) -> std::vector<uint16_t>

@@ -12,6 +12,7 @@ namespace imgui
         RendererStatsWindow();
         void draw(const gfx::Batch& batch);
     private:
+        bool vsync = true;
         std::chrono::system_clock::time_point timer;
     };
 

@@ -1,5 +1,6 @@
 #include "renderer_stats.hpp"
 
+#include <GLFW/glfw3.h>
 #include <imgui.h>
 
 namespace imgui
@@ -17,12 +18,19 @@ namespace imgui
             return;
         }
 
+        if (ImGui::Checkbox("Enable Vsync", &vsync))
+        {
+            glfwSwapInterval(vsync ? 1 : 0);
+        }
+
         auto now = std::chrono::system_clock::now();
         auto delta = std::chrono::duration_cast<std::chrono::microseconds>(now - timer).count() / 1000.0f;
         timer = now;
-
         ImGui::Text("frame time: %f (%f FPS)", delta, 1000.0f / delta);
-        ImGui::Text("draw calls: %d", batch.get_draw_calls());
+
+        auto stats = batch.get_stats();
+        ImGui::Text("# sprites: %d", stats.sprites);
+        ImGui::Text("# draw calls: %d", stats.draws);
 
         ImGui::End();
     }

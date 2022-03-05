@@ -2,6 +2,7 @@
 #include "event.hpp"
 #include "game_state.hpp"
 #include "gfx/batch.hpp"
+#include "gfx/camera.hpp"
 #include "log.hpp"
 #include "imgui/console.hpp"
 #include "imgui/imgui.hpp"
@@ -13,6 +14,7 @@
 #include <fmt/printf.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 
 void glfw_error_callback(int code, const char* msg)
 {
@@ -85,6 +87,8 @@ void graphics_main(entt::registry& registry)
     state.log_i("OpenGL renderer: {}", glGetString(GL_RENDERER));
 
     auto batch = gfx::Batch::create(1024).value();
+    auto& cam = state.emplace<gfx::Camera>();
+    cam.ortho(0, 16, 9, 0);
 
     imgui::init(window);
     imgui::Console console;
@@ -134,12 +138,13 @@ void graphics_main(entt::registry& registry)
 void draw_frame(entt::registry& registry, gfx::Batch& batch)
 {
     auto& state = registry.ctx().at<GameState>();
-    auto frame = state.begin_frame();
+    auto& cam = state.get<gfx::Camera>();
 
-    batch.begin();
-    for (float x = -1.0; x < 1.0; x +=  0.02) {
-        for (float y = -1.0; y < 1.0; y +=  0.02) {
-            batch.submit(x, y, 0.015, 0.015);
+    auto frame = state.begin_frame();
+    batch.begin(cam.vp_matrix());
+    for (float x = 0; x < 16; x +=  0.05) {
+        for (float y = 0; y < 9; y +=  0.05) {
+            batch.submit(x, y, 0.04, 0.04);
         }
     }
     batch.end();

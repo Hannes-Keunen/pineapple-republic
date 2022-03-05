@@ -2,6 +2,7 @@ add_subdirectory(entt)
 add_subdirectory(fmt)
 add_subdirectory(glad)
 add_subdirectory(glfw)
+add_subdirectory(glm)
 add_subdirectory(SPIRV-Cross)
 
 add_library(imgui STATIC

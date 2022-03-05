@@ -5,6 +5,8 @@
 #include "gl/vertex_array.hpp"
 #include "vertex.hpp"
 
+#include <glm/glm.hpp>
+
 #include <optional>
 
 namespace gfx
@@ -24,6 +26,12 @@ namespace gfx
                 };
             }
         };
+    public:
+        struct Stats
+        {
+            int sprites;
+            int draws;
+        };
     private:
         Batch(int capacity, gl::Shader&& shader, gl::VertexArray&& vao, gl::Buffer&& vbo, gl::Buffer&& ibo)
             : size(0), capacity(capacity)
@@ -37,11 +45,11 @@ namespace gfx
         Batch& operator=(const Batch&) = delete;
         Batch& operator=(Batch&&) = default;
 
-        void begin();
+        void begin(const glm::mat4& vpmatrix);
         void submit(float x, float y, float w, float h);
         void end();
 
-        auto get_draw_calls() const { return draw_calls; }
+        constexpr auto& get_stats() const { return stats; }
     public:
         static auto create(int capacity) -> std::optional<Batch>;
     private:
@@ -50,12 +58,14 @@ namespace gfx
     private:
         int size;
         int capacity;
-        int draw_calls;
+        glm::mat4 vp_matrix;
         Vertex* mapped_buffer;
 
         gl::Shader shader;
         gl::VertexArray vao;
         gl::Buffer vbo, ibo;
+        
+        Stats stats;
     };
 
 } // namespace gfx
