@@ -13,3 +13,6 @@
 [submodule "lib/SPIRV-Cross"]
 	path = lib/SPIRV-Cross
 	url = https://github.com/KhronosGroup/SPIRV-Cross.git
+[submodule "lib/glm"]
+	path = lib/glm
+	url = https://github.com/g-truc/glm.git
