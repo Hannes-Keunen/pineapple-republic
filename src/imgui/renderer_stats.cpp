@@ -31,6 +31,7 @@ namespace imgui
         auto stats = batch.get_stats();
         ImGui::Text("# sprites: %d", stats.sprites);
         ImGui::Text("# draw calls: %d", stats.draws);
+        ImGui::Text("# textures: %d", stats.textures);
 
         ImGui::End();
     }

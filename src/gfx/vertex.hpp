@@ -18,6 +18,8 @@ namespace gfx
     template <typename T> constexpr auto gl_type() -> GLenum;
     template <> constexpr auto gl_type<float>() -> GLenum { return GL_FLOAT; }
     template <> constexpr auto gl_type<uint8_t>() -> GLenum { return GL_UNSIGNED_BYTE; }
+    template <> constexpr auto gl_type<uint16_t>() -> GLenum { return GL_UNSIGNED_SHORT; }
+    template <> constexpr auto gl_type<uint32_t>() -> GLenum { return GL_UNSIGNED_INT; }
 
     template <typename T> constexpr auto gl_normalize_type() -> bool;
     template <> constexpr auto gl_normalize_type<float>() -> bool { return false; };
@@ -36,9 +38,11 @@ namespace gfx
     }
 
     template <typename T> constexpr auto attrib() -> VertexAttributeInfo;
+    template <> constexpr auto attrib<float>() -> VertexAttributeInfo { return make_attrib<float>(1); }
     template <> constexpr auto attrib<float[2]>() -> VertexAttributeInfo { return make_attrib<float>(2); }
     template <> constexpr auto attrib<float[3]>() -> VertexAttributeInfo { return make_attrib<float>(2); }
     template <> constexpr auto attrib<float[4]>() -> VertexAttributeInfo { return make_attrib<float>(2); }
+    template <> constexpr auto attrib<uint32_t>() -> VertexAttributeInfo { return make_attrib<uint32_t>(1, false); }
 
     template <typename T>
     auto layout() -> std::vector<VertexAttributeInfo>;

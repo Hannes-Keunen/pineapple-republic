@@ -3,11 +3,13 @@
 #include "game_state.hpp"
 #include "gfx/batch.hpp"
 #include "gfx/camera.hpp"
+#include "gfx/gl/texture.hpp"
 #include "log.hpp"
 #include "imgui/console.hpp"
 #include "imgui/imgui.hpp"
 #include "imgui/log_window.hpp"
 #include "imgui/renderer_stats.hpp"
+#include "res/cache.hpp"
 #include "tsqueue.hpp"
 
 #include <entt/entt.hpp>
@@ -15,6 +17,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <stb_image.h>
 
 void glfw_error_callback(int code, const char* msg)
 {
@@ -90,6 +93,14 @@ void graphics_main(entt::registry& registry)
     auto& cam = state.emplace<gfx::Camera>();
     cam.ortho(0, 16, 9, 0);
 
+    int x, y, c;
+    auto tex_data = stbi_load("../res/textures/farm_tile.bmp", &x, &y, &c, 4);
+    auto& textures = state.emplace<res::Cache<gfx::gl::Texture>>();
+    textures.emplace("../res/textures/farm_tile.bmp", gfx::gl::Texture::create(x, y, gfx::gl::TextureFormat::Rgba8U, tex_data).value());
+    stbi_image_free(tex_data);
+    tex_data = stbi_load("../res/textures/pineapple_0.bmp", &x, &y, &c, 4);
+    textures.emplace("../res/textures/pineapple_0.bmp", gfx::gl::Texture::create(x, y, gfx::gl::TextureFormat::Rgba8U, tex_data).value());
+
     imgui::init(window);
     imgui::Console console;
     console.set_cmd_callback([&](const std::string& cmd)
@@ -139,12 +150,15 @@ void draw_frame(entt::registry& registry, gfx::Batch& batch)
 {
     auto& state = registry.ctx().at<GameState>();
     auto& cam = state.get<gfx::Camera>();
+    auto& textures = state.get<res::Cache<gfx::gl::Texture>>();
+    auto tex1 = textures.get("../res/textures/farm_tile.bmp");
+    auto tex2 = textures.get("../res/textures/pineapple_0.bmp");
 
     auto frame = state.begin_frame();
     batch.begin(cam.vp_matrix());
-    for (float x = 0; x < 16; x +=  0.05) {
-        for (float y = 0; y < 9; y +=  0.05) {
-            batch.submit(x, y, 0.04, 0.04);
+    for (int x = 0; x < 16; x +=  1) {
+        for (int y = 0; y < 9; y +=  1) {
+            batch.submit(x, y, 1, 1, ((x + y) % 2 == 0) ? tex1 : tex2);
         }
     }
     batch.end();

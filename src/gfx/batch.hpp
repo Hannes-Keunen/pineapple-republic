@@ -2,12 +2,15 @@
 
 #include "gl/buffer.hpp"
 #include "gl/shader.hpp"
+#include "gl/texture.hpp"
 #include "gl/vertex_array.hpp"
 #include "vertex.hpp"
 
 #include <glm/glm.hpp>
 
+#include <memory>
 #include <optional>
+#include <vector>
 
 namespace gfx
 {
@@ -17,12 +20,14 @@ namespace gfx
         {
             float pos[2];
             float uv[2];
+            float tex_index;
 
             static auto layout() -> std::vector<VertexAttributeInfo>
             {
                 return {
                     attrib<decltype(Vertex::pos)>(),
-                    attrib<decltype(Vertex::uv)>()
+                    attrib<decltype(Vertex::uv)>(),
+                    attrib<decltype(Vertex::tex_index)>()
                 };
             }
         };
@@ -31,6 +36,7 @@ namespace gfx
         {
             int sprites;
             int draws;
+            int textures;
         };
     private:
         Batch(int capacity, gl::Shader&& shader, gl::VertexArray&& vao, gl::Buffer&& vbo, gl::Buffer&& ibo)
@@ -46,7 +52,7 @@ namespace gfx
         Batch& operator=(Batch&&) = default;
 
         void begin(const glm::mat4& vpmatrix);
-        void submit(float x, float y, float w, float h);
+        void submit(float x, float y, float w, float h, const std::shared_ptr<gl::Texture>& texture);
         void end();
 
         constexpr auto& get_stats() const { return stats; }
@@ -64,6 +70,7 @@ namespace gfx
         gl::Shader shader;
         gl::VertexArray vao;
         gl::Buffer vbo, ibo;
+        std::vector<std::shared_ptr<gl::Texture>> textures;
         
         Stats stats;
     };
