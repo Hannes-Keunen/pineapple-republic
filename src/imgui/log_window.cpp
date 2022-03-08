@@ -10,9 +10,9 @@ namespace imgui
 {
     LogWindow::LogWindow(GameState& state) : visible(true)
     {
-        state.on_event<logging::Entry>([this](const logging::Entry& e)
+        logger::subscribe([&, this](const logger::Entry& e)
         {
-            logs.push_back(fmt::format("[{}][{}|{}] {}", e.timestamp, e.thread_id, e.level, e.msg));
+            logs.push_back(fmt::format("[{}][{}|{}] {}", e.timestamp, state.get_threads().at(e.thread_id).get_label(), e.level, e.msg));
         });
     }
 

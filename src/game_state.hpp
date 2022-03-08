@@ -63,49 +63,6 @@ public:
     }
 
 public:
-    template <typename... T>
-    void log_t(fmt::format_string<T...> fmt, T&&... args)
-    {
-        log(logging::Level::Trace, fmt, std::forward<T>(args)...);
-    }
-
-    template <typename... T>
-    void log_d(fmt::format_string<T...> fmt, T&&... args)
-    {
-        log(logging::Level::Debug, fmt, std::forward<T>(args)...);
-    }
-
-    template <typename... T>
-    void log_i(fmt::format_string<T...> fmt, T&&... args)
-    {
-        log(logging::Level::Info, fmt, std::forward<T>(args)...);
-    }
-
-    template <typename... T>
-    void log_w(fmt::format_string<T...> fmt, T&&... args)
-    {
-        log(logging::Level::Warning, fmt, std::forward<T>(args)...);
-    }
-
-    template <typename... T>
-    void log_e(fmt::format_string<T...> fmt, T&&... args)
-    {
-        log(logging::Level::Error, fmt, std::forward<T>(args)...);
-    }
-
-private:
-    template <typename... T>
-    void log(logging::Level level, fmt::format_string<T...> fmt, T&&... args)
-    {
-        publish_event<logging::Entry>({
-            .timestamp = std::chrono::system_clock::now(),
-            .level = level,
-            .thread_id = this_thread().get_label(),
-            .msg = fmt::format(fmt, std::forward<T>(args)...)
-        });
-    }
-
-public:
     using ThreadFunc = std::function<void(entt::registry& registry)>;
     void create_thread(std::string&& label, ThreadFunc&& f, entt::registry& registry);
 

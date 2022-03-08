@@ -44,9 +44,9 @@ int main()
     auto& state = registry.ctx().emplace<GameState>();
     state.create_thread("simulation", simulation_main, registry);
     state.create_thread("graphics", graphics_main, registry);
-    state.on_event<logging::Entry>([](const logging::Entry& e)
+    state.on_event<logger::Entry>([&](const logger::Entry& e)
     {
-        fmt::print("[{}][{}|{}] {}\n", e.timestamp, e.thread_id, e.level, e.msg);
+        fmt::print("[{}][{}|{}] {}\n", e.timestamp, state.get_threads().at(e.thread_id).get_label(), e.level, e.msg);
     });
 
     bool running = true;
@@ -56,12 +56,12 @@ int main()
         {
             if (!thread.running)
             {
-                state.log_i("thread {} has stopped, exiting...", thread.get_label());
+                logger::i("thread {} has stopped, exiting...", thread.get_label());
                 running = false;
             }
         }
 
-        state.get<EventBus<logging::Entry>>().drain();
+        logger::drain();
     }
 
     for (auto& [_, data] : state.get_threads()) { data.running = false; }

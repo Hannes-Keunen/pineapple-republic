@@ -55,7 +55,7 @@ void graphics_main(entt::registry& registry)
 
     if (!glfwInit())
     {
-        state.log_e("glfwInit failed");
+        logger::e("glfwInit failed");
         return;
     }
 
@@ -68,7 +68,7 @@ void graphics_main(entt::registry& registry)
     auto window = glfwCreateWindow(1920, 1080, "Pineapple Republic", nullptr, nullptr);
     if (window == nullptr)
     {
-        state.log_e("failed to create a window");
+        logger::e("failed to create a window");
         glfwTerminate();
         return;
     }
@@ -76,7 +76,7 @@ void graphics_main(entt::registry& registry)
     glfwMakeContextCurrent(window);
     if (gladLoadGLLoader((GLADloadproc) glfwGetProcAddress) == 0)
     {
-        state.log_e("gladLoadGLLoader failed");
+        logger::e("gladLoadGLLoader failed");
         glfwDestroyWindow(window);
         glfwTerminate();
         return;
@@ -86,8 +86,8 @@ void graphics_main(entt::registry& registry)
 
     glfwSetKeyCallback(window, glfw_key_callback);
 
-    state.log_i("OpenGL version: {}", glGetString(GL_VERSION));
-    state.log_i("OpenGL renderer: {}", glGetString(GL_RENDERER));
+    logger::i("OpenGL version: {}", glGetString(GL_VERSION));
+    logger::i("OpenGL renderer: {}", glGetString(GL_RENDERER));
 
     auto batch = gfx::Batch::create(1024).value();
     auto& cam = state.emplace<gfx::Camera>();
@@ -113,9 +113,6 @@ void graphics_main(entt::registry& registry)
 
     while (state.this_thread().running && !glfwWindowShouldClose(window))
     {
-        // Events
-        auto& logger = state.get<EventBus<logging::Entry>>();
-        logger.drain();
 
         auto& log_queue = registry.ctx().at<TsQueue<cmd::CommandResult>>();
         while (!log_queue.is_empty())
@@ -129,6 +126,8 @@ void graphics_main(entt::registry& registry)
         glClear(GL_COLOR_BUFFER_BIT);
 
         draw_frame(registry, batch);
+
+        logger::drain();
 
         imgui::begin();
         if (show_console) { console.draw(&show_console); }

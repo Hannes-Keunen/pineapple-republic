@@ -27,7 +27,7 @@ namespace cmd
             result_queue.push(result);
 
             auto& state = registry.ctx().at<GameState>();
-            state.log_i("{}", result.msg);
+            logger::i("{}", result.msg);
         }
     }
 
@@ -56,7 +56,7 @@ namespace cmd
             auto& result_queue = registry.ctx().at<TsQueue<CommandResult>>();
             result_queue.push({ .msg = fmt::format("unknown command '{}'", argv[0]) });
             auto& state = registry.ctx().at<GameState>();
-            state.log_e("unknown command '{}'", argv[0]);
+            logger::e("unknown command '{}'", argv[0]);
         }
     }
 
