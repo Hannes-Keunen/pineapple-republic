@@ -44,7 +44,7 @@ int main()
     auto& state = registry.ctx().emplace<GameState>();
     state.create_thread("simulation", simulation_main, registry);
     state.create_thread("graphics", graphics_main, registry);
-    state.on_event<logger::Entry>([&](const logger::Entry& e)
+    logger::subscribe([&](const logger::Entry& e)
     {
         fmt::print("[{}][{}|{}] {}\n", e.timestamp, state.get_threads().at(e.thread_id).get_label(), e.level, e.msg);
     });
