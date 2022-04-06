@@ -21,19 +21,19 @@
 
 void glfw_error_callback(int code, const char* msg)
 {
-    fmt::print("[GLFW] error {:d}: {:s}\n", code, msg);
+    logger::error("GLFW error {:d}: {:s}\n", code, msg);
 }
 
 void gl_debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userparam)
 {
     switch (type)
     {
-    case GL_DEBUG_TYPE_ERROR: fmt::print("[OpenGL] error: {:s}", message); break;
-    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: fmt::print("[OpenGL] deprecation warning: {:s}", message); break;
-    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: fmt::print("[OpenGL] undefined behavior warning: {:s}", message); break;
-    case GL_DEBUG_TYPE_PORTABILITY: fmt::print("[OpenGL] portability warning: {:s}", message); break;
-    case GL_DEBUG_TYPE_PERFORMANCE: fmt::print("[OpenGL] performance warning: {:s}", message); break;
-    default: fmt::print("[OpenGL] debug: {:s}", message);
+    case GL_DEBUG_TYPE_ERROR: logger::error("OpenGL error: {:s}", message); break;
+    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: logger::warning("OpenGL deprecation warning: {:s}", message); break;
+    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: logger::warning("OpenGL undefined behavior warning: {:s}", message); break;
+    case GL_DEBUG_TYPE_PORTABILITY: logger::warning("OpenGL portability warning: {:s}", message); break;
+    case GL_DEBUG_TYPE_PERFORMANCE: logger::warning("OpenGL performance warning: {:s}", message); break;
+    default: logger::debug("OpenGL debug: {:s}", message);
     }
 }
 
