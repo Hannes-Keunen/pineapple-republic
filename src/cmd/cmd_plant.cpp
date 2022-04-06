@@ -36,12 +36,12 @@ namespace cmd
         auto& map = registry.ctx().at<TileMap>();
         if (data.x > map.get_width() || data.y > map.get_height())
         {
-            return result("tile index out of range: ({},{}), range is ({},{}", data.x, data.y, map.get_width(), map.get_height());
+            return error_result("tile index out of range: ({},{}), range is ({},{}", data.x, data.y, map.get_width(), map.get_height());
         }
 
         if (!registry.ctx().at<CropRegistry>().contains(data.plant_id))
         {
-            return result("unknown crop {}", data.plant_id);
+            return error_result("unknown crop {}", data.plant_id);
         }
         auto &tile = map.tile_at(data.x, data.y);
 
@@ -49,7 +49,7 @@ namespace cmd
         registry.emplace<Crop>(entity, data.plant_id, 0ul);
         tile.entity = entity;
 
-        return result("planted {} at ({},{})", data.plant_id, data.x, data.y);
+        return success_result("planted {} at ({},{})", data.plant_id, data.x, data.y);
     }
 
 } // namespace cmd

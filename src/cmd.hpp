@@ -8,8 +8,15 @@
 
 namespace cmd
 {
+    enum class CommandResultState
+    {
+        Ok,
+        Error
+    };
+
     struct CommandResult
     {
+        CommandResultState state;
         std::string msg;
     };
 

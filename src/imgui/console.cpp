@@ -14,9 +14,12 @@ namespace imgui
         this->callback = callback;
     }
 
-    void Console::push_log_entry(const std::string& msg)
+    void Console::push_cmd_result(const cmd::CommandResult& res)
     {
-        log.push_back(msg);
+        log.push_back({
+            .msg = res.msg,
+            .color = res.state == cmd::CommandResultState::Ok ? 0xFFFFFFFF : 0xFF0000FF
+        });
     }
 
     void Console::draw(bool* open)
@@ -37,7 +40,9 @@ namespace imgui
 
         for (const auto& item : log)
         {
-            ImGui::TextUnformatted(item.c_str());
+            ImGui::PushStyleColor(ImGuiCol_Text, item.color);
+            ImGui::TextUnformatted(item.msg.c_str());
+            ImGui::PopStyleColor();
         }
 
         if (scroll_to_bottom || (ImGui::GetScrollY() >= ImGui::GetScrollMaxY()))
@@ -77,10 +82,10 @@ namespace imgui
         }
         else
         {
-            log.push_back(fmt::format(">> {:s}", command));
+            log.push_back({ fmt::format(">> {:s}", command), 0xFFFFFFFF });
             if (callback == nullptr)
             {
-                log.push_back(fmt::format("unknown command {}", cmd));
+                log.push_back({ fmt::format("unknown command {}", cmd), 0xFFFFFFFF });
             }
             else
             {

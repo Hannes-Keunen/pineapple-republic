@@ -17,7 +17,7 @@ namespace cmd
     auto exec<CmdExitData>(entt::registry& registry, const CmdExitData& data) -> CommandResult
     {
         registry.ctx().at<GameState>().this_thread().running = false;
-        return result("received exit command, exiting...");
+        return success_result("received exit command, exiting...");
     }
 
 } // namespace cmd

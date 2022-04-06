@@ -56,7 +56,7 @@ int main()
         {
             if (!thread.running)
             {
-                logger::i("thread {} has stopped, exiting...", thread.get_label());
+                logger::info("thread {} has stopped, exiting...", thread.get_label());
                 running = false;
             }
         }

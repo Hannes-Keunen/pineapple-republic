@@ -55,7 +55,7 @@ void graphics_main(entt::registry& registry)
 
     if (!glfwInit())
     {
-        logger::e("glfwInit failed");
+        logger::error("glfwInit failed");
         return;
     }
 
@@ -68,7 +68,7 @@ void graphics_main(entt::registry& registry)
     auto window = glfwCreateWindow(1920, 1080, "Pineapple Republic", nullptr, nullptr);
     if (window == nullptr)
     {
-        logger::e("failed to create a window");
+        logger::error("failed to create a window");
         glfwTerminate();
         return;
     }
@@ -76,7 +76,7 @@ void graphics_main(entt::registry& registry)
     glfwMakeContextCurrent(window);
     if (gladLoadGLLoader((GLADloadproc) glfwGetProcAddress) == 0)
     {
-        logger::e("gladLoadGLLoader failed");
+        logger::error("gladLoadGLLoader failed");
         glfwDestroyWindow(window);
         glfwTerminate();
         return;
@@ -108,17 +108,17 @@ void graphics_main(entt::registry& registry)
     tex_data = stbi_load("../res/textures/pineapple_0.bmp", &x, &y, &c, 4);
     textures.emplace("../res/textures/pineapple_0.bmp", gfx::gl::Texture::create(x, y, gfx::gl::TextureFormat::Rgba8U, tex_data).value());
 
-    logger::i("OpenGL version: {}", glGetString(GL_VERSION));
-    logger::i("OpenGL renderer: {}", glGetString(GL_RENDERER));
+    logger::info("OpenGL version: {}", glGetString(GL_VERSION));
+    logger::info("OpenGL renderer: {}", glGetString(GL_RENDERER));
 
-    logger::t("begin rendering loop");
+    logger::trace("begin rendering loop");
     while (state.this_thread().running && !glfwWindowShouldClose(window))
     {
 
         auto& log_queue = registry.ctx().at<TsQueue<cmd::CommandResult>>();
         while (!log_queue.is_empty())
         {
-            console.push_log_entry(log_queue.pop().msg);
+            console.push_cmd_result(log_queue.pop());
         }
 
         int w, h;

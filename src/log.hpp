@@ -47,31 +47,31 @@ namespace logger
     }
 
     template <typename... T>
-    void t(fmt::format_string<T...> fmt, T&&... args)
+    void trace(fmt::format_string<T...> fmt, T&&... args)
     {
         print(logger::Level::Trace, fmt, std::forward<T>(args)...);
     }
 
     template <typename... T>
-    void d(fmt::format_string<T...> fmt, T&&... args)
+    void debug(fmt::format_string<T...> fmt, T&&... args)
     {
         print(logger::Level::Debug, fmt, std::forward<T>(args)...);
     }
 
     template <typename... T>
-    void i(fmt::format_string<T...> fmt, T&&... args)
+    void info(fmt::format_string<T...> fmt, T&&... args)
     {
         print(logger::Level::Info, fmt, std::forward<T>(args)...);
     }
 
     template <typename... T>
-    void w(fmt::format_string<T...> fmt, T&&... args)
+    void warning(fmt::format_string<T...> fmt, T&&... args)
     {
         print(logger::Level::Warning, fmt, std::forward<T>(args)...);
     }
 
     template <typename... T>
-    void e(fmt::format_string<T...> fmt, T&&... args)
+    void error(fmt::format_string<T...> fmt, T&&... args)
     {
         print(logger::Level::Error, fmt, std::forward<T>(args)...);
     }

@@ -33,25 +33,25 @@ namespace cmd
         auto& map = registry.ctx().at<TileMap>();
         if (data.x > map.get_width() || data.y > map.get_height())
         {
-            return result("tile index out of range: ({},{}), range is ({},{}", data.x, data.y, map.get_width(), map.get_height());
+            return error_result("tile index out of range: ({},{}), range is ({},{}", data.x, data.y, map.get_width(), map.get_height());
         }
 
         auto& tile = map.tile_at(data.x, data.y);
         if (tile.entity == entt::null)
         {
-            return result("there is no crop at ({},{})", data.x, data.y);
+            return error_result("there is no crop at ({},{})", data.x, data.y);
         }
 
         auto& crop = registry.get<Crop>(tile.entity);
         auto& type = registry.ctx().at<CropRegistry>().at(crop.type);
         if (crop.age < type.grow_time)
         {
-            return result("crop {} at tile ({},{}) is not ripe yet ({}/{})", crop.type, data.x, data.y, crop.age, type.grow_time);
+            return error_result("crop {} at tile ({},{}) is not ripe yet ({}/{})", crop.type, data.x, data.y, crop.age, type.grow_time);
         }
 
         tile.entity = entt::null;
         // TODO: add crop harvest item to the harvester's inventory
-        return result("harvested crop {} at tile ({},{}): {}", crop.type, data.x, data.y, type.produce_id);
+        return success_result("harvested crop {} at tile ({},{}): {}", crop.type, data.x, data.y, type.produce_id);
     }
 
 } // namespace cmd
