@@ -86,8 +86,15 @@ void graphics_main(entt::registry& registry)
 
     glfwSetKeyCallback(window, glfw_key_callback);
 
-    logger::i("OpenGL version: {}", glGetString(GL_VERSION));
-    logger::i("OpenGL renderer: {}", glGetString(GL_RENDERER));
+    imgui::init(window);
+    imgui::Console console;
+    console.set_cmd_callback([&](const std::string& cmd)
+    {
+        auto& cmd_queue = registry.ctx().at<TsQueue<std::string>>();
+        cmd_queue.push(cmd);
+    });
+    imgui::LogWindow log_window(state);
+    imgui::RendererStatsWindow stats_window;
 
     auto batch = gfx::Batch::create(1024).value();
     auto& cam = state.emplace<gfx::Camera>();
@@ -101,16 +108,10 @@ void graphics_main(entt::registry& registry)
     tex_data = stbi_load("../res/textures/pineapple_0.bmp", &x, &y, &c, 4);
     textures.emplace("../res/textures/pineapple_0.bmp", gfx::gl::Texture::create(x, y, gfx::gl::TextureFormat::Rgba8U, tex_data).value());
 
-    imgui::init(window);
-    imgui::Console console;
-    console.set_cmd_callback([&](const std::string& cmd)
-    {
-        auto& cmd_queue = registry.ctx().at<TsQueue<std::string>>();
-        cmd_queue.push(cmd);
-    });
-    imgui::LogWindow log_window(state);
-    imgui::RendererStatsWindow stats_window;
+    logger::i("OpenGL version: {}", glGetString(GL_VERSION));
+    logger::i("OpenGL renderer: {}", glGetString(GL_RENDERER));
 
+    logger::t("begin rendering loop");
     while (state.this_thread().running && !glfwWindowShouldClose(window))
     {
 
@@ -130,6 +131,7 @@ void graphics_main(entt::registry& registry)
         logger::drain();
 
         imgui::begin();
+        ImGui::ShowDemoWindow();
         if (show_console) { console.draw(&show_console); }
         log_window.draw();
         stats_window.draw(batch);

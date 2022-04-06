@@ -84,12 +84,12 @@ struct fmt::formatter<logger::Level> : formatter<std::string_view>
     template <typename FormatContext>
     auto format(logger::Level api, FormatContext& ctx) {
         switch (api) {
-        case logger::Level::Trace: return formatter<std::string_view>::format("T", ctx);
-        case logger::Level::Debug: return formatter<std::string_view>::format("D", ctx);
-        case logger::Level::Info: return formatter<std::string_view>::format("I", ctx);
-        case logger::Level::Warning: return formatter<std::string_view>::format("W", ctx);
-        case logger::Level::Error: return formatter<std::string_view>::format("E", ctx);
-        default: return formatter<std::string_view>::format("?", ctx);
+        case logger::Level::Trace: return formatter<std::string_view>::format("Trace", ctx);
+        case logger::Level::Debug: return formatter<std::string_view>::format("Debug", ctx);
+        case logger::Level::Info: return formatter<std::string_view>::format("Info", ctx);
+        case logger::Level::Warning: return formatter<std::string_view>::format("Warning", ctx);
+        case logger::Level::Error: return formatter<std::string_view>::format("Error", ctx);
+        default: return formatter<std::string_view>::format("???", ctx);
         }
     }
 };
