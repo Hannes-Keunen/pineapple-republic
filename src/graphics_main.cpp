@@ -56,8 +56,6 @@ void glfw_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
     camera.scale(yoffset > 0 ? 2.0f : 0.5f);
 }
 
-void draw_frame(GameState& state);
-
 void graphics_main(GameState& state)
 {
     if (!glfwInit())
@@ -69,6 +67,7 @@ void graphics_main(GameState& state)
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+    glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
     // auto monitor = glfwGetPrimaryMonitor();
     // auto mode = glfwGetVideoMode(monitor);
     // auto window = glfwCreateWindow(mode->width, mode->height, "Pineapple Republic", monitor, nullptr);
@@ -138,7 +137,9 @@ void graphics_main(GameState& state)
         glClear(GL_COLOR_BUFFER_BIT);
 
         gfx::sys::cam_control(state);
-        draw_frame(state);
+        gfx::sys::begin_draw(state);
+        gfx::sys::draw_map(state);
+        gfx::sys::end_draw(state);
 
         logger::drain();
 
@@ -157,22 +158,4 @@ void graphics_main(GameState& state)
 
     glfwDestroyWindow(window);
     glfwTerminate();
-}
-
-void draw_frame(GameState& state)
-{
-    auto& cam = state.get<gfx::Camera>();
-    auto& textures = state.get<res::Cache<gfx::gl::Texture>>();
-    auto tex1 = textures.get("../res/textures/farm_tile.bmp");
-    auto tex2 = textures.get("../res/textures/pineapple_0.bmp");
-
-    auto frame = state.begin_frame();
-    auto& batch = state.get<gfx::Batch>();
-    batch.begin(cam.vp_matrix());
-    for (int x = 0; x < 16; x +=  1) {
-        for (int y = 0; y < 9; y +=  1) {
-            batch.submit(x, y, 1, 1, ((x + y) % 2 == 0) ? tex1 : tex2);
-        }
-    }
-    batch.end();
 }

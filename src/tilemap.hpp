@@ -20,8 +20,8 @@ public:
     auto tile_at(int x, int y) -> Tile& { return tiles[y * width + x]; }
     auto tile_at(int x, int y) const -> const Tile& { return tiles[y * width + x]; }
 
-    constexpr auto get_width() -> int { return width; }
-    constexpr auto get_height() -> int { return height; }
+    constexpr auto get_width() const -> int { return width; }
+    constexpr auto get_height() const -> int { return height; }
 
 private:
     int width, height;
