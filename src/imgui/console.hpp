@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cmd.hpp"
+#include "imgui/window.hpp"
 
 #include <functional>
 #include <string>
@@ -8,7 +9,7 @@
 
 namespace imgui
 {
-    class Console
+    class Console : public Window
     {
         struct Entry
         {
@@ -16,18 +17,13 @@ namespace imgui
             uint32_t color;
         };
     public:
-        using Callback = std::function<void(const std::string&)>;
-    public:
-        void set_cmd_callback(Callback callback);
-        void push_cmd_result(const cmd::CommandResult& msg);
-        void draw(bool* open);
+        void draw(GameState& state, bool* visible) override;
     private:
-        void exec_cmd(const std::string& cmd);
+        void exec_cmd(GameState& state, const std::string& cmd);
     private:
         std::string command;
         std::vector<std::string> history;
         std::vector<Entry> log;
-        Callback callback;
         bool scroll_to_bottom;
     };
 

@@ -1,30 +1,27 @@
 #include "imgui/console.hpp"
 
 #include "cmd.hpp"
+#include "game_state.hpp"
 
 #include <imgui.h>
 #include <fmt/printf.h>
 #include <misc/cpp/imgui_stdlib.h>
 
-
 namespace imgui
 {
-    void Console::set_cmd_callback(Callback callback)
+    void Console::draw(GameState& state, bool* visible)
     {
-        this->callback = callback;
-    }
+        auto& log_queue = state.get<TsQueue<cmd::CommandResult>>();
+        while (!log_queue.is_empty())
+        {
+            auto res = log_queue.pop();
+            log.push_back({
+                .msg = res.msg,
+                .color = res.state == cmd::CommandResultState::Ok ? 0xFFFFFFFF : 0xFF0000FF
+            });
+        }
 
-    void Console::push_cmd_result(const cmd::CommandResult& res)
-    {
-        log.push_back({
-            .msg = res.msg,
-            .color = res.state == cmd::CommandResultState::Ok ? 0xFFFFFFFF : 0xFF0000FF
-        });
-    }
-
-    void Console::draw(bool* open)
-    {
-        if (!ImGui::Begin("Console", open))
+        if (!ImGui::Begin("Console", visible))
         {
             ImGui::End();
             return;
@@ -56,7 +53,7 @@ namespace imgui
         ImGuiInputTextFlags flags = ImGuiInputTextFlags_EnterReturnsTrue;
         if (ImGui::InputText(">>", &command, flags))
         {
-            exec_cmd(command);
+            exec_cmd(state, command);
             command.clear();
             reclaim_focus = true;
             scroll_to_bottom = true;
@@ -72,7 +69,7 @@ namespace imgui
         ImGui::End();
     }
 
-    void Console::exec_cmd(const std::string& cmd)
+    void Console::exec_cmd(GameState& state, const std::string& cmd)
     {
         history.push_back(command);
 
@@ -83,14 +80,8 @@ namespace imgui
         else
         {
             log.push_back({ fmt::format(">> {:s}", command), 0xFFFFFFFF });
-            if (callback == nullptr)
-            {
-                log.push_back({ fmt::format("unknown command {}", cmd), 0xFFFFFFFF });
-            }
-            else
-            {
-                callback(command);
-            }
+            auto& cmd_queue = state.get<TsQueue<cmd::ConsoleCommand>>();
+            cmd_queue.push({ cmd });
         }
     }
 

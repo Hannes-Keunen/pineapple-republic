@@ -1,5 +1,8 @@
 #include "renderer_stats.hpp"
 
+#include "game_state.hpp"
+#include "gfx/batch.hpp"
+
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 
@@ -10,9 +13,10 @@ namespace imgui
         timer = std::chrono::system_clock::now();
     }
 
-    void RendererStatsWindow::draw(const gfx::Batch& batch)
+    void RendererStatsWindow::draw(GameState& state, bool* visible)
     {
-        if (!ImGui::Begin("Renderer"))
+        const auto& batch = state.get<gfx::Batch>();
+        if (!ImGui::Begin("Renderer", visible))
         {
             ImGui::End();
             return;

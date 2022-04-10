@@ -1,16 +1,16 @@
 #pragma once
 
-#include "gfx/batch.hpp"
+#include "imgui/window.hpp"
 
 #include <chrono>
 
 namespace imgui
 {
-    class RendererStatsWindow
+    class RendererStatsWindow : public Window
     {
     public:
         RendererStatsWindow();
-        void draw(const gfx::Batch& batch);
+        void draw(GameState& state, bool* visible) override;
     private:
         bool vsync = true;
         std::chrono::system_clock::time_point timer;

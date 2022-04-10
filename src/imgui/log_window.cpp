@@ -11,7 +11,7 @@
 
 namespace imgui
 {
-    LogWindow::LogWindow(GameState& state) : visible(true)
+    LogWindow::LogWindow(GameState& state)
     {
         logger::subscribe([&, this](const logger::Entry& e)
         {
@@ -37,9 +37,9 @@ namespace imgui
         });
     }
 
-    void LogWindow::draw()
+    void LogWindow::draw(GameState& state, bool* visible)
     {
-        if (!ImGui::Begin("Log", &visible))
+        if (!ImGui::Begin("Log", visible))
         {
             ImGui::End();
             return;

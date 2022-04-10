@@ -1,5 +1,3 @@
-#include "cmd.hpp"
-#include "event.hpp"
 #include "game_state.hpp"
 #include "gfx/batch.hpp"
 #include "gfx/camera.hpp"
@@ -7,18 +5,16 @@
 #include "gfx/sys/systems.hpp"
 #include "log.hpp"
 #include "imgui/console.hpp"
+#include "imgui/demo.hpp"
 #include "imgui/imgui.hpp"
 #include "imgui/log_window.hpp"
 #include "imgui/renderer_stats.hpp"
+#include "imgui/window.hpp"
 #include "res/cache.hpp"
 #include "threading.hpp"
-#include "tsqueue.hpp"
 
-#include <entt/entt.hpp>
-#include <fmt/printf.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
 #include <stb_image.h>
 
 void glfw_error_callback(int code, const char* msg)
@@ -39,13 +35,13 @@ void gl_debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, G
     }
 }
 
-static bool show_console = true;
-
 void glfw_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    if (key == GLFW_KEY_T && action == GLFW_PRESS && (mods & GLFW_MOD_CONTROL))
+    if (action == GLFW_PRESS && (mods & GLFW_MOD_CONTROL))
     {
-        show_console = !show_console;
+        auto& state = *((GameState*) glfwGetWindowUserPointer(window));
+        auto& manager = state.get<imgui::WindowManager>();
+        manager.toggle_window(key);
     }
 }
 
@@ -90,21 +86,18 @@ void graphics_main(GameState& state)
 
     glDebugMessageCallback(gl_debug_callback, nullptr);
 
+    glfwSetWindowUserPointer(window, &state);
     glfwSetKeyCallback(window, glfw_key_callback);
     glfwSetScrollCallback(window, glfw_scroll_callback);
 
-    glfwSetWindowUserPointer(window, &state);
     state.emplace<GLFWwindow*>(window);
 
     imgui::init(window);
-    imgui::Console console;
-    console.set_cmd_callback([&](const std::string& cmd)
-    {
-        auto& cmd_queue = state.get<TsQueue<cmd::ConsoleCommand>>();
-        cmd_queue.push({ cmd });
-    });
-    imgui::LogWindow log_window(state);
-    imgui::RendererStatsWindow stats_window;
+    auto& window_manager = state.emplace<imgui::WindowManager>();
+    window_manager.add_window<imgui::Console>(GLFW_KEY_T);
+    window_manager.add_window<imgui::LogWindow>(GLFW_KEY_L, state);
+    window_manager.add_window<imgui::RendererStatsWindow>(GLFW_KEY_S);
+    window_manager.add_window<imgui::DemoWindow>(GLFW_KEY_D);
 
     auto& batch = state.emplace<gfx::Batch>(gfx::Batch::create(1024).value());
     auto& cam = state.emplace<gfx::Camera>();
@@ -125,12 +118,6 @@ void graphics_main(GameState& state)
     auto& tc = state.get<ThreadConfig>();
     while (tc.this_thread().running && !glfwWindowShouldClose(window))
     {
-        auto& log_queue = state.get<TsQueue<cmd::CommandResult>>();
-        while (!log_queue.is_empty())
-        {
-            console.push_cmd_result(log_queue.pop());
-        }
-
         int w, h;
         glfwGetFramebufferSize(window, &w, &h);
         glViewport(0, 0, w, h);
@@ -144,10 +131,7 @@ void graphics_main(GameState& state)
         logger::drain();
 
         imgui::begin();
-        ImGui::ShowDemoWindow();
-        if (show_console) { console.draw(&show_console); }
-        log_window.draw();
-        stats_window.draw(batch);
+        imgui::draw_windows(state);
         imgui::draw();
 
         glfwSwapBuffers(window);

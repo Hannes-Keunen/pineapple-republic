@@ -1,7 +1,6 @@
 #pragma once
 
-#include "game_state.hpp"
-#include "log.hpp"
+#include "imgui/window.hpp"
 
 #include <regex>
 #include <set>
@@ -10,7 +9,7 @@
 
 namespace imgui
 {
-    class LogWindow
+    class LogWindow : public Window
     {
         struct Entry
         {
@@ -22,10 +21,8 @@ namespace imgui
         };
     public:
         LogWindow(GameState& state);
-        void draw();
+        void draw(GameState& state, bool* visible) override;
     private:
-        bool visible;
-
         std::vector<Entry> logs;
         std::set<std::string> thread_ids;
         std::set<std::string> levels;
