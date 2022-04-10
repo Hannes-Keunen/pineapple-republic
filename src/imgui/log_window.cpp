@@ -1,7 +1,9 @@
 #include "log_window.hpp"
 
 #include "event.hpp"
+#include "game_state.hpp"
 #include "log.hpp"
+#include "threading.hpp"
 
 #include <fmt/chrono.h>
 #include <imgui.h>
@@ -19,13 +21,13 @@ namespace imgui
             case logger::Level::Error: color = 0xFF0000FF;
             }
 
-            std::string thread = state.get_threads().at(e.thread_id).get_label();
+            std::string thread = state.get<ThreadConfig>().get_threads().at(e.thread_id).get_label();
             std::string level = fmt::format("{}", e.level);
 
             logs.push_back({
                 .timestamp = fmt::format("{}", e.timestamp),
                 .level = level,
-                .thread_id = state.get_threads().at(e.thread_id).get_label(),
+                .thread_id = thread,
                 .msg = e.msg,
                 .color = color
             });

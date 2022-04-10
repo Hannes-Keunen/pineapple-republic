@@ -14,19 +14,18 @@
 
 namespace cmd
 {
-    using CommandHandler = std::function<void(entt::registry&, const std::vector<std::string>&)>;
+    using CommandHandler = std::function<void(GameState&, const std::vector<std::string>&)>;
     using CommandMap = std::unordered_map<std::string, CommandHandler>;
 
-    template <typename T> void handler_func(entt::registry& registry, const std::vector<std::string>& argv)
+    template <typename T> void handler_func(GameState& state, const std::vector<std::string>& argv)
     {
-        auto data = parse<T>(registry, argv);
+        auto data = parse<T>(state, argv);
         if (data != std::nullopt)
         {
-            auto result = exec(registry, data.value());
-            auto& result_queue = registry.ctx().at<TsQueue<CommandResult>>();
+            auto result = exec(state, data.value());
+            auto& result_queue = state.get<TsQueue<CommandResult>>();
             result_queue.push(result);
 
-            auto& state = registry.ctx().at<GameState>();
             switch (result.state)
             {
             case CommandResultState::Ok: logger::info("{}", result.msg);
@@ -36,31 +35,30 @@ namespace cmd
         }
     }
 
-    void init_handlers(entt::registry& registry)
+    void init_handlers(GameState& state)
     {
         CommandMap commands;
         commands.emplace("plant", &handler_func<CmdPlantData>);
         commands.emplace("harvest", &handler_func<CmdHarvestData>);
         commands.emplace("exit", &handler_func<CmdExitData>);
-        registry.ctx().emplace<CommandMap>(std::move(commands));
+        state.emplace<CommandMap>(std::move(commands));
 
-        registry.ctx().emplace<TsQueue<std::string>>();     // command queue
-        registry.ctx().emplace<TsQueue<CommandResult>>();   // result queue
+        state.emplace<TsQueue<ConsoleCommand>>();  // command queue
+        state.emplace<TsQueue<CommandResult>>();   // result queue
     }
 
-    void parse_exec(entt::registry& registry, const std::string& cmd)
+    void parse_exec(GameState& state, const ConsoleCommand& cmd)
     {
-        auto argv = str::split(cmd);
-        auto& commands = registry.ctx().at<CommandMap>();
+        auto argv = str::split(cmd.cmd);
+        auto& commands = state.get<CommandMap>();
         if (commands.contains(argv[0]))
         {
-            commands.at(argv[0])(registry, argv);
+            commands.at(argv[0])(state, argv);
         }
         else
         {
-            auto& result_queue = registry.ctx().at<TsQueue<CommandResult>>();
+            auto& result_queue = state.get<TsQueue<CommandResult>>();
             result_queue.push({ .msg = fmt::format("unknown command '{}'", argv[0]) });
-            auto& state = registry.ctx().at<GameState>();
             logger::error("unknown command '{}'", argv[0]);
         }
     }

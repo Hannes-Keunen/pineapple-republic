@@ -1,6 +1,6 @@
 #pragma once
 
-#include <entt/entt.hpp>
+#include "game_state.hpp"
 
 #include <optional>
 #include <string>
@@ -20,10 +20,15 @@ namespace cmd
         std::string msg;
     };
 
-    template <typename T> auto parse(entt::registry& registry, const std::vector<std::string>& argv) -> std::optional<T>;
-    template <typename T> auto exec(entt::registry& registry, const T& data) -> CommandResult;
+    struct ConsoleCommand
+    {
+        std::string cmd;
+    };
 
-    void init_handlers(entt::registry& registry);
-    void parse_exec(entt::registry& registry, const std::string& cmd);
+    template <typename T> auto parse(GameState& state, const std::vector<std::string>& argv) -> std::optional<T>;
+    template <typename T> auto exec(GameState& state, const T& data) -> CommandResult;
+
+    void init_handlers(GameState& state);
+    void parse_exec(GameState& state, const ConsoleCommand& cmd);
 
 } // namespace cmd

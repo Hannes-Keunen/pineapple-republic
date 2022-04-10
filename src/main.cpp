@@ -5,19 +5,11 @@
 #include "model/crop.hpp"
 #include "model/item.hpp"
 #include "registry.hpp"
-#include "systems/systems.hpp"
+#include "threading.hpp"
 #include "tilemap.hpp"
-#include "tsqueue.hpp"
 
 #include <entt/entt.hpp>
 #include <fmt/chrono.h>
-
-#include <atomic>
-#include <chrono>
-#include <iostream>
-#include <string>
-#include <thread>
-#include <vector>
 
 auto init() -> InitData
 {
@@ -31,28 +23,32 @@ auto init() -> InitData
     };
 }
 
-void simulation_main(entt::registry& registry);
-void graphics_main(entt::registry& registry);
+void simulation_main(GameState& state);
+void graphics_main(GameState& state);
 
 int main()
 {
-    entt::registry registry;
-    cmd::init_handlers(registry);
-    registry.ctx().emplace<TileMap>(10, 10);
-    init_registries(registry, init());
+    GameState state;
+    cmd::init_handlers(state);
 
-    auto& state = registry.ctx().emplace<GameState>();
-    state.create_thread("simulation", simulation_main, registry);
-    state.create_thread("graphics", graphics_main, registry);
+    auto& tc = state.emplace<ThreadConfig>();
+
     logger::subscribe([&](const logger::Entry& e)
     {
-        fmt::print("[{}][{}|{}] {}\n", e.timestamp, state.get_threads().at(e.thread_id).get_label(), e.level, e.msg);
+        fmt::print("[{}][{}|{}] {}\n", e.timestamp, tc.get_threads().at(e.thread_id).get_label(), e.level, e.msg);
     });
+
+    tc.create_thread("simulation", simulation_main, state);
+    tc.create_thread("graphics", graphics_main, state);
+
+    // TODO: move to simulation thread
+    state.emplace<TileMap>(10, 10);
+    init_registries(state, init());
 
     bool running = true;
     while (running)
     {
-        for (const auto& [_, thread] : state.get_threads())
+        for (const auto& [_, thread] : tc.get_threads())
         {
             if (!thread.running)
             {
@@ -64,6 +60,6 @@ int main()
         logger::drain();
     }
 
-    for (auto& [_, data] : state.get_threads()) { data.running = false; }
-    for (auto& [_, data] : state.get_threads()) { if (data.thread.joinable()) { data.thread.join(); } }
+    for (auto& [_, data] : tc.get_threads()) { data.running = false; }
+    for (auto& [_, data] : tc.get_threads()) { if (data.thread.joinable()) { data.thread.join(); } }
 }

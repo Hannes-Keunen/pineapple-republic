@@ -1,39 +1,37 @@
 #include "cmd.hpp"
 #include "game_state.hpp"
 #include "systems/systems.hpp"
+#include "threading.hpp"
 #include "tsqueue.hpp"
-
-#include <entt/entt.hpp>
 
 #include <atomic>
 #include <chrono>
 
-void process_commands(entt::registry& registry)
+void process_commands(GameState& state)
 {
-    auto& cmd_queue = registry.ctx().at<TsQueue<std::string>>();
+    auto& cmd_queue = state.get<TsQueue<cmd::ConsoleCommand>>();
     while (!cmd_queue.is_empty())
     {
-        cmd::parse_exec(registry, cmd_queue.pop());
+        cmd::parse_exec(state, cmd_queue.pop());
     }
 }
 
-void update(entt::registry& registry, uint32_t delta)
+void update(GameState& state, uint32_t delta)
 {
-    sys::growth_tick(registry, delta);
+    sys::growth_tick(state.get_ecs(), delta);
 }
 
-void simulation_main(entt::registry& registry)
+void simulation_main(GameState& state)
 {
-    auto& state = registry.ctx().at<GameState>();
-
     auto prev = std::chrono::system_clock::now();
-    while(state.this_thread().running)
+    auto& tc = state.get<ThreadConfig>();
+    while(tc.this_thread().running)
     {
-        process_commands(registry);
+        process_commands(state);
 
         auto now = std::chrono::system_clock::now();
         auto delta = std::chrono::duration_cast<std::chrono::microseconds>(now - prev).count();
         prev = now;
-        update(registry, delta);
+        update(state, delta);
     }
 }

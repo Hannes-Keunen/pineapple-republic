@@ -3,10 +3,9 @@
 #include "model/crop.hpp"
 #include "model/item.hpp"
 
-#include <entt/entt.hpp>
-
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 template <typename T>
 using Registry = std::unordered_map<std::string, T>;
@@ -20,4 +19,6 @@ struct InitData
     std::vector<CropType> crops;
 };
 
-void init_registries(entt::registry &registry, const InitData& data);
+class GameState;
+
+void init_registries(GameState& state, const InitData& data);

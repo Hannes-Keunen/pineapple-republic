@@ -2,39 +2,19 @@
 
 #include "any.hpp"
 #include "event.hpp"
-#include "log.hpp"
 
 #include <entt/entt.hpp>
 
-#include <any>
-#include <atomic>
 #include <mutex>
-#include <string>
-#include <thread>
 #include <typeindex>
 #include <unordered_map>
+#include <utility>
 
-class ThreadData
-{
-public:
-    std::atomic_bool running;
-    std::thread thread;
-public:
-    ThreadData(std::string&& label, std::thread&& thread)
-        : label(label), thread(std::forward<std::thread>(thread)), running(true) {}
-    ThreadData(const ThreadData&) = delete;
-    ThreadData(ThreadData&&) = default;
-
-    constexpr const auto& get_label() const { return label; }
-private:
-    std::string label;
-};
+using Ecs = entt::registry;
 
 class GameState
 {
-public:
-    GameState();
-public:
+public: // state variables
     template <typename T>
     T& get()
     {
@@ -48,6 +28,7 @@ public:
         return ctx.at(std::type_index(typeid(T))).as<T>();
     }
 
+public: // events
     template <typename T>
     void publish_event(const T& event)
     {
@@ -63,19 +44,12 @@ public:
     }
 
 public:
-    using ThreadFunc = std::function<void(entt::registry& registry)>;
-    void create_thread(std::string&& label, ThreadFunc&& f, entt::registry& registry);
+    auto& get_ecs() { return ecs; }
 
-    auto& get_threads() const { return threads; }
-    auto& get_threads() { return threads; }
-    auto& this_thread() const { return threads.at(std::this_thread::get_id()); }
-    auto& this_thread() { return threads.at(std::this_thread::get_id()); }
-
-    // TODO: double-buffer the registry instead of exclusive lock
+    // TODO: try to synchronize parts of graphics/simulation instead of exclusive lock
     [[nodiscard]] auto begin_frame() { return std::lock_guard<std::mutex>(frame_mutex); }
 private:
-    std::atomic_bool dummy;
-    std::unordered_map<std::thread::id, ThreadData> threads;
+    Ecs ecs;
     std::unordered_map<std::type_index, AnyPtr> ctx;
     std::mutex frame_mutex;
 };

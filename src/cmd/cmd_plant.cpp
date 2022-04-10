@@ -16,7 +16,7 @@
 namespace cmd
 {
     template <>
-    auto parse<CmdPlantData>(entt::registry& registry, const std::vector<std::string>& argv) -> std::optional<CmdPlantData>
+    auto parse<CmdPlantData>(GameState& state, const std::vector<std::string>& argv) -> std::optional<CmdPlantData>
     {
         if (!check_argc(argv.size(), 4))
         {
@@ -31,22 +31,23 @@ namespace cmd
     }
 
     template <>
-    auto exec<CmdPlantData>(entt::registry& registry, const CmdPlantData& data) -> CommandResult
+    auto exec<CmdPlantData>(GameState& state, const CmdPlantData& data) -> CommandResult
     {
-        auto& map = registry.ctx().at<TileMap>();
+        auto& map = state.get<TileMap>();
         if (data.x > map.get_width() || data.y > map.get_height())
         {
             return error_result("tile index out of range: ({},{}), range is ({},{}", data.x, data.y, map.get_width(), map.get_height());
         }
 
-        if (!registry.ctx().at<CropRegistry>().contains(data.plant_id))
+        if (!state.get<CropRegistry>().contains(data.plant_id))
         {
             return error_result("unknown crop {}", data.plant_id);
         }
         auto &tile = map.tile_at(data.x, data.y);
 
-        auto entity = registry.create();
-        registry.emplace<Crop>(entity, data.plant_id, 0ul);
+        auto& ecs = state.get_ecs();
+        auto entity = ecs.create();
+        ecs.emplace<Crop>(entity, data.plant_id, 0ul);
         tile.entity = entity;
 
         return success_result("planted {} at ({},{})", data.plant_id, data.x, data.y);

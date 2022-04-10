@@ -14,7 +14,7 @@
 namespace cmd
 {
     template <>
-    auto parse<CmdHarvestData>(entt::registry& registry, const std::vector<std::string>& argv) -> std::optional<CmdHarvestData>
+    auto parse<CmdHarvestData>(GameState& state, const std::vector<std::string>& argv) -> std::optional<CmdHarvestData>
     {
         if (!check_argc(argv.size(), 3))
         {
@@ -28,9 +28,9 @@ namespace cmd
     }
 
     template <>
-    auto exec<CmdHarvestData>(entt::registry& registry, const CmdHarvestData& data) -> CommandResult
+    auto exec<CmdHarvestData>(GameState& state, const CmdHarvestData& data) -> CommandResult
     {
-        auto& map = registry.ctx().at<TileMap>();
+        auto& map = state.get<TileMap>();
         if (data.x > map.get_width() || data.y > map.get_height())
         {
             return error_result("tile index out of range: ({},{}), range is ({},{}", data.x, data.y, map.get_width(), map.get_height());
@@ -42,8 +42,8 @@ namespace cmd
             return error_result("there is no crop at ({},{})", data.x, data.y);
         }
 
-        auto& crop = registry.get<Crop>(tile.entity);
-        auto& type = registry.ctx().at<CropRegistry>().at(crop.type);
+        auto& crop = state.get_ecs().get<Crop>(tile.entity);
+        auto& type = state.get<CropRegistry>().at(crop.type);
         if (crop.age < type.grow_time)
         {
             return error_result("crop {} at tile ({},{}) is not ripe yet ({}/{})", crop.type, data.x, data.y, crop.age, type.grow_time);

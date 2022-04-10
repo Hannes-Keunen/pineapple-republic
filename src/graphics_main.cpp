@@ -10,6 +10,7 @@
 #include "imgui/log_window.hpp"
 #include "imgui/renderer_stats.hpp"
 #include "res/cache.hpp"
+#include "threading.hpp"
 #include "tsqueue.hpp"
 
 #include <entt/entt.hpp>
@@ -47,12 +48,10 @@ void glfw_key_callback(GLFWwindow* window, int key, int scancode, int action, in
     }
 }
 
-void draw_frame(entt::registry& registry, gfx::Batch& batch);
+void draw_frame(GameState& state);
 
-void graphics_main(entt::registry& registry)
+void graphics_main(GameState& state)
 {
-    auto& state = registry.ctx().at<GameState>();
-
     if (!glfwInit())
     {
         logger::error("glfwInit failed");
@@ -90,13 +89,13 @@ void graphics_main(entt::registry& registry)
     imgui::Console console;
     console.set_cmd_callback([&](const std::string& cmd)
     {
-        auto& cmd_queue = registry.ctx().at<TsQueue<std::string>>();
-        cmd_queue.push(cmd);
+        auto& cmd_queue = state.get<TsQueue<cmd::ConsoleCommand>>();
+        cmd_queue.push({ cmd });
     });
     imgui::LogWindow log_window(state);
     imgui::RendererStatsWindow stats_window;
 
-    auto batch = gfx::Batch::create(1024).value();
+    auto& batch = state.emplace<gfx::Batch>(gfx::Batch::create(1024).value());
     auto& cam = state.emplace<gfx::Camera>();
     cam.ortho(0, 16, 9, 0);
 
@@ -112,10 +111,11 @@ void graphics_main(entt::registry& registry)
     logger::info("OpenGL renderer: {}", glGetString(GL_RENDERER));
 
     logger::trace("begin rendering loop");
-    while (state.this_thread().running && !glfwWindowShouldClose(window))
+    auto& tc = state.get<ThreadConfig>();
+    while (tc.this_thread().running && !glfwWindowShouldClose(window))
     {
 
-        auto& log_queue = registry.ctx().at<TsQueue<cmd::CommandResult>>();
+        auto& log_queue = state.get<TsQueue<cmd::CommandResult>>();
         while (!log_queue.is_empty())
         {
             console.push_cmd_result(log_queue.pop());
@@ -126,7 +126,7 @@ void graphics_main(entt::registry& registry)
         glViewport(0, 0, w, h);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        draw_frame(registry, batch);
+        draw_frame(state);
 
         logger::drain();
 
@@ -147,15 +147,15 @@ void graphics_main(entt::registry& registry)
     glfwTerminate();
 }
 
-void draw_frame(entt::registry& registry, gfx::Batch& batch)
+void draw_frame(GameState& state)
 {
-    auto& state = registry.ctx().at<GameState>();
     auto& cam = state.get<gfx::Camera>();
     auto& textures = state.get<res::Cache<gfx::gl::Texture>>();
     auto tex1 = textures.get("../res/textures/farm_tile.bmp");
     auto tex2 = textures.get("../res/textures/pineapple_0.bmp");
 
     auto frame = state.begin_frame();
+    auto& batch = state.get<gfx::Batch>();
     batch.begin(cam.vp_matrix());
     for (int x = 0; x < 16; x +=  1) {
         for (int y = 0; y < 9; y +=  1) {

@@ -2,21 +2,22 @@
 #include "cmd/data.hpp"
 #include "cmd/internal.hpp"
 #include "game_state.hpp"
+#include "threading.hpp"
 
 #include <entt/entt.hpp>
 
 namespace cmd
 {
     template <>
-    auto parse<CmdExitData>(entt::registry& registry, const std::vector<std::string>& argv) -> std::optional<CmdExitData>
+    auto parse<CmdExitData>(GameState& state, const std::vector<std::string>& argv) -> std::optional<CmdExitData>
     {
         return CmdExitData {};
     }
 
     template <>
-    auto exec<CmdExitData>(entt::registry& registry, const CmdExitData& data) -> CommandResult
+    auto exec<CmdExitData>(GameState& state, const CmdExitData& data) -> CommandResult
     {
-        registry.ctx().at<GameState>().this_thread().running = false;
+        state.get<ThreadConfig>().this_thread().running = false;
         return success_result("received exit command, exiting...");
     }
 

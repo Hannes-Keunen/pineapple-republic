@@ -1,17 +1,19 @@
 #include "registry.hpp"
 
+#include "game_state.hpp"
+
 #include <fmt/printf.h>
 
-void init_registries(entt::registry &registry, const InitData& data)
+void init_registries(GameState& state, const InitData& data)
 {
-    auto& items = registry.ctx().emplace<ItemRegistry>();
+    auto& items = state.emplace<ItemRegistry>();
     for (const auto& item : data.items)
     {
         items.emplace(item.id, item);
     }
     fmt::print("[registry] loaded {} items\n", items.size());
 
-    auto& crops = registry.ctx().emplace<CropRegistry>();
+    auto& crops = state.emplace<CropRegistry>();
     for (const auto& crop : data.crops)
     {
         if (!items.contains(crop.produce_id))
