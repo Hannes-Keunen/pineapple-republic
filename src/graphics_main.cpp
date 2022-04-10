@@ -4,6 +4,7 @@
 #include "gfx/batch.hpp"
 #include "gfx/camera.hpp"
 #include "gfx/gl/texture.hpp"
+#include "gfx/sys/systems.hpp"
 #include "log.hpp"
 #include "imgui/console.hpp"
 #include "imgui/imgui.hpp"
@@ -48,6 +49,13 @@ void glfw_key_callback(GLFWwindow* window, int key, int scancode, int action, in
     }
 }
 
+void glfw_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    GameState& state = *((GameState*) glfwGetWindowUserPointer(window));
+    auto& camera = state.get<gfx::Camera>();
+    camera.scale(yoffset > 0 ? 2.0f : 0.5f);
+}
+
 void draw_frame(GameState& state);
 
 void graphics_main(GameState& state)
@@ -84,6 +92,10 @@ void graphics_main(GameState& state)
     glDebugMessageCallback(gl_debug_callback, nullptr);
 
     glfwSetKeyCallback(window, glfw_key_callback);
+    glfwSetScrollCallback(window, glfw_scroll_callback);
+
+    glfwSetWindowUserPointer(window, &state);
+    state.emplace<GLFWwindow*>(window);
 
     imgui::init(window);
     imgui::Console console;
@@ -114,7 +126,6 @@ void graphics_main(GameState& state)
     auto& tc = state.get<ThreadConfig>();
     while (tc.this_thread().running && !glfwWindowShouldClose(window))
     {
-
         auto& log_queue = state.get<TsQueue<cmd::CommandResult>>();
         while (!log_queue.is_empty())
         {
@@ -126,6 +137,7 @@ void graphics_main(GameState& state)
         glViewport(0, 0, w, h);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        gfx::sys::cam_control(state);
         draw_frame(state);
 
         logger::drain();
